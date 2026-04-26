@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Swish Automotive — Estimate</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f2f2f7;--white:#ffffff;--border:#e0e0e5;--border-focus:#1c1c2e;
+  --text:#1c1c2e;--text-sub:#6b6b80;--text-muted:#adadbe;
+  --btn-bg:#1c1c2e;--result-bg:#f7f7fb;
+  --r:14px;--r-sm:10px;--r-xs:8px;
+}
+html,body{background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+.page{max-width:680px;margin:0 auto;padding:40px 20px 60px;}
+
+.page-header{display:flex;align-items:center;gap:14px;margin-bottom:28px;}
+.logo-box{width:44px;height:44px;background:var(--text);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo-box svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.header-brand{font-size:16px;font-weight:600;}
+.page-title{font-size:28px;font-weight:700;letter-spacing:-0.02em;margin-bottom:6px;}
+.page-subtitle{font-size:15px;color:var(--text-sub);margin-bottom:28px;}
+
+.loading-overlay{text-align:center;padding:48px 24px;display:none;}
+.loading-overlay.visible{display:block;}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--text);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 14px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{font-size:14px;color:var(--text-sub);}
+
+.error-banner{background:#fff0f0;border:1px solid #ffcccc;border-radius:var(--r-sm);padding:14px 18px;font-size:14px;color:#cc3333;margin-bottom:16px;display:none;line-height:1.6;}
+.error-banner.visible{display:block;}
+
+.card{background:var(--white);border-radius:var(--r);border:1px solid var(--border);padding:24px;margin-bottom:16px;display:none;}
+.card.visible{display:block;}
+.section-label{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-sub);margin-bottom:18px;}
+.field-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px;}
+.field-grid-1{display:grid;grid-template-columns:1fr;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field label{font-size:14px;font-weight:500;}
+.divider{height:1px;background:var(--border);margin:20px 0;}
+
+.sel-wrap{position:relative;}
+.sel-wrap::after{content:'';position:absolute;right:13px;top:50%;transform:translateY(-50%);border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--text-sub);pointer-events:none;}
+select{width:100%;background:var(--white);border:1px solid var(--border);border-radius:var(--r-xs);color:var(--text);font-family:'Inter',sans-serif;font-size:15px;padding:11px 36px 11px 12px;appearance:none;-webkit-appearance:none;outline:none;cursor:pointer;transition:border-color 0.15s,box-shadow 0.15s;}
+select:hover:not(:disabled){border-color:#b0b0c0;}
+select:focus{border-color:var(--border-focus);box-shadow:0 0 0 3px rgba(28,28,46,0.1);}
+select:disabled{opacity:0.4;cursor:not-allowed;background:#f8f8fb;}
+select option{background:#fff;color:#1c1c2e;}
+
+.result-card{background:var(--white);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;margin-bottom:16px;display:none;}
+.result-card.visible{display:block;animation:fadeUp 0.3s ease forwards;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.summary-row{display:flex;align-items:center;gap:14px;padding:20px 24px;border-bottom:1px solid var(--border);}
+.car-icon{width:40px;height:40px;background:var(--result-bg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.summary-vehicle{font-size:16px;font-weight:700;margin-bottom:2px;}
+.summary-service{font-size:14px;color:var(--text-sub);}
+.price-section{padding:28px 24px 24px;text-align:center;background:var(--result-bg);}
+.price-label{font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-sub);margin-bottom:10px;}
+.price-amount{font-size:56px;font-weight:800;letter-spacing:-0.03em;line-height:1;margin-bottom:8px;}
+.price-includes{font-size:13px;color:var(--text-muted);}
+
+.btn-book{display:none;align-items:center;justify-content:center;gap:10px;width:100%;padding:17px 24px;background:var(--btn-bg);border:none;border-radius:var(--r-sm);color:#fff;font-family:'Inter',sans-serif;font-size:16px;font-weight:600;cursor:pointer;transition:background 0.15s,transform 0.1s;margin-bottom:16px;text-decoration:none;}
+.btn-book.visible{display:flex;}
+.btn-book:hover{background:#2e2e4a;transform:translateY(-1px);}
+.btn-book svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+.btn-reset{width:100%;padding:14px;background:transparent;border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text-sub);font-family:'Inter',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:border-color 0.15s,color 0.15s;display:none;}
+.btn-reset.visible{display:block;}
+.btn-reset:hover{border-color:#b0b0c0;color:var(--text);}
+
+@media(max-width:520px){
+  .page{padding:24px 14px 48px;}
+  .page-title{font-size:22px;}
+  .field-grid-3{grid-template-columns:1fr;gap:10px;}
+  .price-amount{font-size:44px;}
+  .card{padding:18px;}
+  .summary-row{padding:16px 18px;}
+  .price-section{padding:22px 18px 20px;}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="page-header">
+    <div class="logo-box">
+      <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+    </div>
+    <span class="header-brand">Swish Automotive</span>
+  </div>
+
+  <h1 class="page-title">Get your service estimate</h1>
+  <p class="page-subtitle">Instant pricing based on your vehicle &amp; service</p>
+
+  <div class="loading-overlay" id="loading">
+    <div class="spinner"></div>
+    <div class="loading-text">Loading vehicle &amp; service data…</div>
+  </div>
+
+  <div class="error-banner" id="error-banner"></div>
+
+  <div class="card" id="form-card">
+    <div class="section-label">Vehicle Details</div>
+    <div class="field-grid-3">
+      <div class="field">
+        <label for="sel-make">Make</label>
+        <div class="sel-wrap"><select id="sel-make"><option value="">Select…</option></select></div>
+      </div>
+      <div class="field">
+        <label for="sel-model">Model</label>
+        <div class="sel-wrap"><select id="sel-model" disabled><option value="">Select…</option></select></div>
+      </div>
+      <div class="field">
+        <label for="sel-year">Year</label>
+        <div class="sel-wrap"><select id="sel-year" disabled><option value="">Select…</option></select></div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="field-grid-1">
+      <div class="field">
+        <label for="sel-service">Service Type</label>
+        <div class="sel-wrap"><select id="sel-service" disabled><option value="">Select a service…</option></select></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="result-card" id="result-card">
+    <div class="summary-row">
+      <div class="car-icon">🚗</div>
+      <div>
+        <div class="summary-vehicle" id="res-vehicle"></div>
+        <div class="summary-service" id="res-service"></div>
+      </div>
+    </div>
+    <div class="price-section">
+      <div class="price-label">Estimated Total</div>
+      <div class="price-amount" id="res-price"></div>
+      <div class="price-includes">Includes parts, labor &amp; Swish fee &nbsp;·&nbsp; No taxes</div>
+    </div>
+  </div>
+
+  <a class="btn-book" id="btn-book" href="#" target="_blank" rel="noopener">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Book This Service
+  </a>
+  <button class="btn-reset" id="btn-reset">Start Over</button>
+
+</div>
+<script>
+// ─────────────────────────────────────────────────────────────
+// CONFIG — SheetDB API (handles CORS natively)
+// ─────────────────────────────────────────────────────────────
+var SHEETDB     = 'https://sheetdb.io/api/v1/wihl454qcwuax';
+var ACUITY_URL  = 'https://app.acuityscheduling.com/schedule.php?owner=YOUR_ID';
+
+var URL_VEHICLES = SHEETDB + '?sheet=Vehicles';
+var URL_SERVICES = SHEETDB + '?sheet=Services';
+var URL_PARTS    = SHEETDB + '?sheet=generated_parts';
+
+// ─────────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────────
+var vehicleMap  = {};
+var serviceMap  = {};
+var partsLookup = {};
+var YEARS = [];
+for(var y = 2026; y >= 1995; y--) YEARS.push(y);
+var $ = function(id){ return document.getElementById(id); };
+
+// ─────────────────────────────────────────────────────────────
+// BOOT — fetch all 3 tabs from SheetDB in parallel
+// SheetDB returns proper JSON arrays with CORS headers
+// ─────────────────────────────────────────────────────────────
+async function boot(){
+  showLoading(true);
+  hideError();
+  try {
+    var results = await Promise.all([
+      fetch(URL_VEHICLES).then(function(r){ return r.json(); }),
+      fetch(URL_SERVICES).then(function(r){ return r.json(); }),
+      fetch(URL_PARTS).then(function(r){ return r.json(); })
+    ]);
+
+    var vRows = results[0];
+    var sRows = results[1];
+    var pRows = results[2];
+
+    // ── Vehicles: make, model ──
+    for(var i = 0; i < vRows.length; i++){
+      var make  = String(vRows[i].make  || '').trim();
+      var model = String(vRows[i].model || '').trim();
+      if(!make || !model) continue;
+      if(!vehicleMap[make]) vehicleMap[make] = {};
+      vehicleMap[make][model] = true;
+    }
+    var allMakes = Object.keys(vehicleMap);
+    for(var i = 0; i < allMakes.length; i++){
+      vehicleMap[allMakes[i]] = Object.keys(vehicleMap[allMakes[i]]).sort();
+    }
+    if(!allMakes.length) throw new Error('No vehicles found.');
+
+    // ── Services: service_id, service_name, labor_base, swish_fee ──
+    for(var i = 0; i < sRows.length; i++){
+      var r  = sRows[i];
+      var id = String(r.service_id   || '').trim();
+      var nm = String(r.service_name || '').trim();
+      if(!id || !nm) continue;
+      serviceMap[id] = {
+        name:      nm,
+        laborBase: parseFloat(r.labor_base) || 0,
+        swishFee:  parseFloat(r.swish_fee)  || 0
+      };
+    }
+    if(!Object.keys(serviceMap).length) throw new Error('No services found.');
+
+    // ── generated_parts: make, model, service_id, parts_cost ──
+    for(var i = 0; i < pRows.length; i++){
+      var r   = pRows[i];
+      var mk  = String(r.make       || '').trim();
+      var mo  = String(r.model      || '').trim();
+      var sid = String(r.service_id || '').trim();
+      if(!mk || !mo || !sid) continue;
+      partsLookup[mk + '|' + mo + '|' + sid] = parseFloat(r.parts_cost) || 0;
+    }
+
+    // ── Populate makes dropdown ──
+    var selMake = $('sel-make');
+    selMake.innerHTML = '<option value="">Select…</option>';
+    var sorted = Object.keys(vehicleMap).sort();
+    for(var i = 0; i < sorted.length; i++){
+      var o = document.createElement('option');
+      o.value = sorted[i]; o.textContent = sorted[i];
+      selMake.appendChild(o);
+    }
+
+    showLoading(false);
+    $('form-card').classList.add('visible');
+
+  } catch(e){
+    showLoading(false);
+    showError(e.message);
+    console.error('Swish:', e);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// POPULATE SERVICES for selected make + model
+// ─────────────────────────────────────────────────────────────
+function populateServices(make, model){
+  var sel = $('sel-service');
+  sel.innerHTML = '<option value="">Select a service…</option>';
+  var ids = Object.keys(serviceMap);
+  for(var i = 0; i < ids.length; i++){
+    var id = ids[i];
+    if(partsLookup[make + '|' + model + '|' + id] === undefined) continue;
+    var o = document.createElement('option');
+    o.value = id; o.textContent = serviceMap[id].name;
+    sel.appendChild(o);
+  }
+  sel.disabled = false;
+}
+
+// ─────────────────────────────────────────────────────────────
+// EVENTS
+// ─────────────────────────────────────────────────────────────
+$('sel-make').addEventListener('change', function(){
+  var make = $('sel-make').value;
+  $('sel-model').innerHTML = '<option value="">Select…</option>'; $('sel-model').disabled = true;
+  $('sel-year').innerHTML  = '<option value="">Select…</option>'; $('sel-year').disabled  = true;
+  $('sel-service').innerHTML = '<option value="">Select a service…</option>'; $('sel-service').disabled = true;
+  hideResult();
+  if(!make) return;
+  var models = vehicleMap[make] || [];
+  for(var i = 0; i < models.length; i++){
+    var o = document.createElement('option'); o.value = models[i]; o.textContent = models[i];
+    $('sel-model').appendChild(o);
+  }
+  $('sel-model').disabled = false;
+});
+
+$('sel-model').addEventListener('change', function(){
+  $('sel-year').innerHTML  = '<option value="">Select…</option>'; $('sel-year').disabled  = true;
+  $('sel-service').innerHTML = '<option value="">Select a service…</option>'; $('sel-service').disabled = true;
+  hideResult();
+  if(!$('sel-model').value) return;
+  for(var i = 0; i < YEARS.length; i++){
+    var o = document.createElement('option'); o.value = YEARS[i]; o.textContent = YEARS[i];
+    $('sel-year').appendChild(o);
+  }
+  $('sel-year').disabled = false;
+});
+
+$('sel-year').addEventListener('change', function(){
+  $('sel-service').innerHTML = '<option value="">Select a service…</option>'; $('sel-service').disabled = true;
+  hideResult();
+  var make = $('sel-make').value, model = $('sel-model').value;
+  if(!$('sel-year').value || !make || !model) return;
+  populateServices(make, model);
+});
+
+$('sel-service').addEventListener('change', function(){
+  var sid = $('sel-service').value;
+  if(!sid){ hideResult(); return; }
+  showResult($('sel-make').value, $('sel-model').value, $('sel-year').value, sid);
+});
+
+$('btn-reset').addEventListener('click', function(){
+  $('sel-make').value = '';
+  $('sel-model').innerHTML = '<option value="">Select…</option>'; $('sel-model').disabled = true;
+  $('sel-year').innerHTML  = '<option value="">Select…</option>'; $('sel-year').disabled  = true;
+  $('sel-service').innerHTML = '<option value="">Select a service…</option>'; $('sel-service').disabled = true;
+  hideResult();
+  window.scrollTo({top:0, behavior:'smooth'});
+});
+
+// ─────────────────────────────────────────────────────────────
+// SHOW RESULT — Total = parts_cost + labor_base + swish_fee
+// ─────────────────────────────────────────────────────────────
+function showResult(make, model, year, sid){
+  var svc   = serviceMap[sid];
+  var parts = partsLookup[make + '|' + model + '|' + sid] || 0;
+  var total = parts + svc.laborBase + svc.swishFee;
+
+  $('res-vehicle').textContent = year + ' ' + make + ' ' + model;
+  $('res-service').textContent = svc.name;
+  $('res-price').textContent   = '$' + total.toLocaleString();
+
+  var notes = encodeURIComponent(year + ' ' + make + ' ' + model + ' - ' + svc.name);
+  $('btn-book').href = ACUITY_URL + '&notes=' + notes;
+
+  var rc = $('result-card');
+  rc.classList.remove('visible');
+  void rc.offsetWidth;
+  rc.classList.add('visible');
+  $('btn-book').classList.add('visible');
+  $('btn-reset').classList.add('visible');
+  setTimeout(function(){ rc.scrollIntoView({behavior:'smooth', block:'nearest'}); }, 80);
+}
+
+function hideResult(){
+  $('result-card').classList.remove('visible');
+  $('btn-book').classList.remove('visible');
+  $('btn-reset').classList.remove('visible');
+}
+
+function showLoading(on){ $('loading').classList.toggle('visible', on); }
+function showError(msg){ var e=$('error-banner'); e.textContent='⚠️ '+msg; e.classList.add('visible'); }
+function hideError(){ $('error-banner').classList.remove('visible'); }
+
+boot();
+</script>
+</body>
+</html>
