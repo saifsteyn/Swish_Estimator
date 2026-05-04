@@ -327,7 +327,7 @@ function showResult(make, model, year, sid){
   $('res-price').textContent   = '$' + total.toLocaleString();
 
   var notes = encodeURIComponent(year + ' ' + make + ' ' + model + ' - ' + svc.name);
-  $('btn-book').href = ACUITY_URL + '&notes=' + notes;
+  $('btn-book').href = https://app.acuityscheduling.com/schedule.php?owner=39160602&appointmentType=category:Mechanic + '&notes=' + notes;
 
   var rc = $('result-card');
   rc.classList.remove('visible');
