@@ -152,7 +152,7 @@ select option{background:#fff;color:#1c1c2e;}
 // CONFIG — SheetDB API (handles CORS natively)
 // ─────────────────────────────────────────────────────────────
 var SHEETDB     = 'https://sheetdb.io/api/v1/wihl454qcwuax';
-var ACUITY_URL  = 'https://app.acuityscheduling.com/schedule.php?owner=YOUR_ID';
+var ACUITY_URL  = 'https://app.acuityscheduling.com/schedule.php?owner=39160602&appointmentType=category:Mechanic';
 
 var URL_VEHICLES = SHEETDB + '?sheet=Vehicles';
 var URL_SERVICES = SHEETDB + '?sheet=Services';
@@ -327,7 +327,7 @@ function showResult(make, model, year, sid){
   $('res-price').textContent   = '$' + total.toLocaleString();
 
   var notes = encodeURIComponent(year + ' ' + make + ' ' + model + ' - ' + svc.name);
-  $('btn-book').href = https://app.acuityscheduling.com/schedule.php?owner=39160602&appointmentType=category:Mechanic + '&notes=' + notes;
+  $('btn-book').href = ACUITY_URL + '&notes=' + notes;
 
   var rc = $('result-card');
   rc.classList.remove('visible');
