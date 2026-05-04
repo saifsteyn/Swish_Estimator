@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta http-equiv="Content-Security-Policy" content="default-src *; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'; img-src * data: blob:; connect-src *;">
 <title>Swish Automotive — Estimate</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
@@ -149,10 +150,10 @@ select option{background:#fff;color:#1c1c2e;}
 </div>
 <script>
 // ─────────────────────────────────────────────────────────────
-// CONFIG — SheetDB API (handles CORS natively)
+// CONFIG
 // ─────────────────────────────────────────────────────────────
-var SHEETDB     = 'https://sheetdb.io/api/v1/wihl454qcwuax';
-var ACUITY_URL  = 'https://app.acuityscheduling.com/schedule.php?owner=39160602&appointmentType=category:Mechanic';
+var SHEETDB    = 'https://sheetdb.io/api/v1/wihl454qcwuax';
+var ACUITY_URL = 'https://app.acuityscheduling.com/schedule.php?owner=39160602&appointmentType=category:Mechanic';
 
 var URL_VEHICLES = SHEETDB + '?sheet=Vehicles';
 var URL_SERVICES = SHEETDB + '?sheet=Services';
@@ -169,8 +170,7 @@ for(var y = 2026; y >= 1995; y--) YEARS.push(y);
 var $ = function(id){ return document.getElementById(id); };
 
 // ─────────────────────────────────────────────────────────────
-// BOOT — fetch all 3 tabs from SheetDB in parallel
-// SheetDB returns proper JSON arrays with CORS headers
+// BOOT
 // ─────────────────────────────────────────────────────────────
 async function boot(){
   showLoading(true);
@@ -186,7 +186,7 @@ async function boot(){
     var sRows = results[1];
     var pRows = results[2];
 
-    // ── Vehicles: make, model ──
+    // Vehicles: make, model
     for(var i = 0; i < vRows.length; i++){
       var make  = String(vRows[i].make  || '').trim();
       var model = String(vRows[i].model || '').trim();
@@ -200,7 +200,7 @@ async function boot(){
     }
     if(!allMakes.length) throw new Error('No vehicles found.');
 
-    // ── Services: service_id, service_name, labor_base, swish_fee ──
+    // Services: service_id, service_name, labor_base, swish_fee
     for(var i = 0; i < sRows.length; i++){
       var r  = sRows[i];
       var id = String(r.service_id   || '').trim();
@@ -214,7 +214,7 @@ async function boot(){
     }
     if(!Object.keys(serviceMap).length) throw new Error('No services found.');
 
-    // ── generated_parts: make, model, service_id, parts_cost ──
+    // generated_parts: make, model, service_id, parts_cost
     for(var i = 0; i < pRows.length; i++){
       var r   = pRows[i];
       var mk  = String(r.make       || '').trim();
@@ -224,7 +224,7 @@ async function boot(){
       partsLookup[mk + '|' + mo + '|' + sid] = parseFloat(r.parts_cost) || 0;
     }
 
-    // ── Populate makes dropdown ──
+    // Populate makes
     var selMake = $('sel-make');
     selMake.innerHTML = '<option value="">Select…</option>';
     var sorted = Object.keys(vehicleMap).sort();
@@ -326,7 +326,7 @@ function showResult(make, model, year, sid){
   $('res-service').textContent = svc.name;
   $('res-price').textContent   = '$' + total.toLocaleString();
 
-  var notes = encodeURIComponent(year + ' ' + make + ' ' + model + ' - ' + svc.name);
+  var notes = encodeURIComponent(year + ' ' + make + ' ' + model + ' - ' + svc.name + ' - Est. $' + total.toLocaleString());
   $('btn-book').href = ACUITY_URL + '&notes=' + notes;
 
   var rc = $('result-card');
